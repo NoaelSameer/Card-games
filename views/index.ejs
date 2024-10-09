@@ -4,9 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Card Games!</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
-    <button onclick="window.location.href='/blackjack'">blackjack</button>
-    <button onclick="window.location.href='/war'">war</button>
-
+    <div class="phone-container">
+        <div class="phone">
+            <img id="img" src="../assets/iphone.png" alt="iphone">
+            <div class="phone-head">Card Games!</div>
+            <div class="buttons">
+                <button onclick="window.location.href='/blackjack'">blackjack</button>
+                <button onclick="window.location.href='/war'">war</button>
+            </div>
+        </div>
+    </div>
+    <script src="../middleware/index.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 </body>
 </html>

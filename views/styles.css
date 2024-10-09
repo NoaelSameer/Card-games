@@ -1,0 +1,27 @@
+body{
+    background-image: url("../assets/tabletop.jpg");
+    background-size: cover;
+}
+.phone{
+    width: 30vw;
+    height: 45vw;
+    margin: auto;
+    display: flex;
+    justify-content: center;
+    margin-top: 5rem;
+}
+#img{
+    width: 30vw;
+    height: 45vw;
+    position: absolute;
+    border-radius: 4rem;
+}
+.phone-head{
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    margin-top: 5vh;
+    color: white;
+}
