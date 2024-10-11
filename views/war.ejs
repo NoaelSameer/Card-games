@@ -4,8 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+            width: auto;
+            background-color: darkgreen;
+            border: none;
+            margin: 0;
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            position: absolute;
+            margin: auto;
+            justify-content: center;
+            display: flex;
+        }
+        .container{
+            margin-top: 8vh;
+            display: flex;
+            justify-content: space-between;
+            width: 100vw;
+        }
+        .player{
+            height: 100vh;
+            width: 48vw;
+            text-align: center;
+        }
+        .bot{
+            height: 100vh;
+            width: 48vw;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-    <p>War</p>
+    <h1>War</h1>
+    <div class="container">
+        <div class="player">
+            <%= pCardVal %>
+            <form action="/compare">
+                <button type="submit">Compare</button>
+            </form>
+        </div>
+        <div class="bot">
+            <%= bCardVal %>
+        </div>
+    </div>
 </body>
 </html>

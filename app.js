@@ -3,6 +3,8 @@ const blackjack = require('./middleware/blackjack');
 const war = require('./middleware/war');
 const app = express();
 const PORT = 5001
+const axios = require('axios');
+
 app.set('view engine', 'ejs');
 app.set('views', './views'); 
 
@@ -74,14 +76,57 @@ app.post("/blackjack", async (req, res) => {
     // console.log(req.body.action);
 });
 
-
-
-
-
+app.get("/compare", (req, res) => {
+    compare(pCardVal, bCardVal, total);
+})
 // WAR
-app.get("/war", [war], (req, res) => {
-    res.render("war"); 
-    })
+app.get("/war", [war], async (req, res) => {
+    var total = 0, pTotal = 0, bTotal = 0;
+    try{
+        const pDeckRes = await axios.get("https://www.deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1")
+        const bDeckRes = await axios.get("https://www.deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1")
+        const pDeckId = pDeckRes.data.deck_id, bDeckId = bDeckRes.data.deck_id
+        var pCard = await axios.get(`https://www.deckofcardsapi.com/api/deck/${pDeckId}/draw/?count=1`)
+        var bCard = await axios.get(`https://www.deckofcardsapi.com/api/deck/${bDeckId}/draw/?count=1`)
+        var pCardVal = pCard.data.cards[0].value
+        var bCardVal = bCard.data.cards[0].value
+        if(typeof pCardVal === "string"){
+            pCardVal = 10
+        }
+        if(typeof bCardVal === "string"){
+            bCardVal = 10
+        }
+    }catch(error){
+        res.err(err)
+    }
+    async function compare(pCardVal, bCardVal, tot){
+        switch(pCardVal, bCardVal){
+            case (pCardVal == bCardVal):
+                total += (pCardVal + bCardVal)
+                pCard = await axios.get(`https://www.deckofcardsapi.com/api/deck/${pDeckId}/draw/?count=1`)
+                bCard = await axios.get(`https://www.deckofcardsapi.com/api/deck/${bDeckId}/draw/?count=1`)
+                bCardVal = bCard.data.cards[0].value
+                pCardVal = pCard.data.cards[0].value
+                compare(pCardVal, bCardVal, total)
+            case (pCardVal > bCardVal):
+                pTotal += (pCardVal + bCardVal + tot)
+                total = 0
+                pCard = await axios.get(`https://www.deckofcardsapi.com/api/deck/${pDeckId}/draw/?count=1`)
+                bCard = await axios.get(`https://www.deckofcardsapi.com/api/deck/${bDeckId}/draw/?count=1`)
+                bCardVal = bCard.data.cards[0].value
+                pCardVal = pCard.data.cards[0].value
+            case (pCardVal < bCardVal):
+                bTotal += (pCardVal + bCardVal + tot)
+                total = 0
+                pCard = await axios.get(`https://www.deckofcardsapi.com/api/deck/${pDeckId}/draw/?count=1`)
+                bCard = await axios.get(`https://www.deckofcardsapi.com/api/deck/${bDeckId}/draw/?count=1`)
+                bCardVal = bCard.data.cards[0].value
+                pCardVal = pCard.data.cards[0].value
+        }
+    }
+    
+    res.render("war", {pCardVal, bCardVal, pTotal, bTotal});
+})
 
 
 app.listen(PORT, () => {
