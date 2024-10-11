@@ -2,7 +2,7 @@ const express = require('express');
 const blackjack = require('./middleware/blackjack');
 const war = require('./middleware/war');
 const app = express();
-
+const PORT = 5001
 app.set('view engine', 'ejs');
 app.set('views', './views'); 
 
@@ -48,12 +48,17 @@ app.post("/blackjack", async (req, res) => {
     let playerValue = 0;
     const deckRes = await fetch('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1');
     const deckData = await deckRes.json();
-
+    let numberList = ["0","1","2","3","4","5","6","7","8","9",'10'];
     // START WORKING HERE
-    while(playerValue <= 21){
+    while(playerValue <= 10){
         const cardRes = await fetch(`https://deckofcardsapi.com/api/deck/${deckData.deck_id}/draw/?count=2`);
         const cardData = await cardRes.json();
+        const card1 = (numberList.includes(cardData.cards[0].value)) ? parseInt(cardData.cards[0].value) : 10
+        const card2 = (numberList.includes(cardData.cards[1].value))? parseInt(cardData.cards[1].value) : 10
+        
 
+        // const card2 =  
+        playerValue += 1;
     }
     try {
         if(req.body.action == "hit"){
@@ -79,7 +84,7 @@ app.get("/war", [war], (req, res) => {
     })
 
 
-app.listen(5000, () => {
+app.listen(PORT, () => {
     console.log('Server is running on port 5000');
 });
 
