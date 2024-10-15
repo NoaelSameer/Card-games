@@ -26,49 +26,49 @@ app.get("/", (req, res) => {
 
 
 app.get("/blackjack", [blackjack], async (req, res) => {
-    if(req.body.action == "hit"){
-        console.log("Hit");
-    }
-    try {
-        // Deck Information
-        const deckRes = await fetch('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1');
-        const deckData = await deckRes.json();
-        // console.log(deckData);
-
-        const cardRes = await fetch(`https://deckofcardsapi.com/api/deck/${deckData.deck_id}/draw/?count=2`);
-        const cardData = await cardRes.json();
-        // console.log(cardData);
-        res.render("blackjack");
-    }
-    catch (error) {
-        console.error(error);
-    }
+    const playerValue = 0;
+    const dealerValue = 0;
+    const gameOver = false;
+    const message = "";
+        res.render("blackjack", {playerValue, dealerValue, gameOver, message});
 
 });
 app.post("/blackjack", async (req, res) => {
-    let dealerValue = 0;
-    let playerValue = 0;
-    const deckRes = await fetch('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1');
-    const deckData = await deckRes.json();
-    let numberList = ["0","1","2","3","4","5","6","7","8","9",'10'];
-    // START WORKING HERE
-    while(playerValue <= 10){
+    try {
+        let playerValue = 0, dealerValue = 0;
+        let card1, card2
+        let gameOver = false;
+        const deckRes = await fetch('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1');
+        const deckData = await deckRes.json();
+        let numberList = ["0","1","2","3","4","5","6","7","8","9",'10'];
         const cardRes = await fetch(`https://deckofcardsapi.com/api/deck/${deckData.deck_id}/draw/?count=2`);
         const cardData = await cardRes.json();
-        const card1 = (numberList.includes(cardData.cards[0].value)) ? parseInt(cardData.cards[0].value) : 10
-        const card2 = (numberList.includes(cardData.cards[1].value))? parseInt(cardData.cards[1].value) : 10
-        
-
-        // const card2 =  
-        playerValue += 1;
-    }
-    try {
-        if(req.body.action == "hit"){
-            console.log("Hit");
-        }else if(req.body.action == "stand") {
-            console.log("Stand");
+    
+        // FLAWED SYSTEM FIX SOON!!!
+        if(cardData.cards[0].value == "ACE"){
+            card1 = (playerValue < 21) ? 11 : 1
+            // console.log("Ace found")
+        } else{
+            card1 = (numberList.includes(cardData.cards[0].value)) ? parseInt(cardData.cards[0].value) : 10
         }
-        res.render("blackjack");
+        if(cardData.cards[1].value == "ACE"){
+            card2 = (playerValue < 21) ? 11: 1
+            // console.log("Ace found in deck")
+        } else{
+            card2 = (numberList.includes(cardData.cards[1].value))? parseInt(cardData.cards[1].value) : 10
+        }
+        console.log("Start")
+        // playerValue += card1;
+        dealerValue += card2;
+        if(req.body.action == "hit"){
+            console.log("Hit")
+            playerValue += card1;
+        }
+        if(req.body.action == "stand"){
+            console.log("Stand")
+        }
+        console.log(card1, card2);
+        res.render("blackjack", {gameOver, playerValue, dealerValue});
     }
     catch (error) {
         console.error(error);

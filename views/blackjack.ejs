@@ -7,13 +7,16 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
-    <p>blackjack</p>
-    <form method="POST" action="/blackjack">
-        <button name="action" value="hit">Hit</button>
-    </form>
-    <form method="POST" action="/blackjack">
-        <button name="action" value="stand">Stand</button>
-    </form>
-        <!-- <form action=""></form> -->
+    <h1>Blackjack</h1>
+    <p>Player Value: <%= playerValue %></p>
+    <p>Dealer Value: <%= dealerValue %></p>
+    <% if (!gameOver) { %>
+        <form method="POST" action="/blackjack">
+            <button name="action" value="hit">Hit</button>
+            <button name="action" value="stand">Stand</button>
+        </form>
+    <% } else { %>
+        <p>Game Over! <%= message %></p>
+    <% } %>
 </body>
 </html>

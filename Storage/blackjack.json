@@ -1,0 +1,6 @@
+{
+    "playerValue": 0,
+    "dealerValue": 0,
+    "gameOver": false,
+    "message": ""
+}
