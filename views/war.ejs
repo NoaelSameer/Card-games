@@ -43,13 +43,19 @@
     <h1>War</h1>
     <div class="container">
         <div class="player">
+            <p>Card Value:</p>
             <%= pCardVal %>
-            <form action="/compare">
-                <button type="submit">Compare</button>
+            <p>Total Score:</p>
+            <%= pTotal %>
+            <form action="/war">
+                <button name="action" value="compare" type="submit">Compare</button>
             </form>
         </div>
         <div class="bot">
+            <p>Card Value:</p>
             <%= bCardVal %>
+            <p>Total Score:</p>
+            <%= bTotal %>
         </div>
     </div>
 </body>
