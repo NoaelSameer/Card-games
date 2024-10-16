@@ -81,22 +81,22 @@ app.get("/", (req, res) => {
 // declare a few variables outside the route
 
 var total = 0, pTotal = 0, bTotal = 0
+var pCardVal = 0, bCardVal = 0, deckId = 0, pCard, bCard, remain
 
-app.get("/war", [war], async (req, res) => {
+app.get("/war", async (req, res) => {
     try{ // try catch to handle errors
-        const pDeckRes = await axios.get("https://www.deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1")
-        const bDeckRes = await axios.get("https://www.deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1") //Get deck of cards
-        const pDeckId = pDeckRes.data.deck_id, bDeckId = bDeckRes.data.deck_id //get deck of cards ids
-        var pCard = await axios.get(`https://www.deckofcardsapi.com/api/deck/${pDeckId}/draw/?count=1`)
-        var bCard = await axios.get(`https://www.deckofcardsapi.com/api/deck/${bDeckId}/draw/?count=1`) // draw a card
-        var pCardVal = pCard.data.cards[0].value
-        var bCardVal = bCard.data.cards[0].value // Get the cards values
-        const {pCardVal: newPCardVal, bCardVal: newBCardVal} = await strVals(pCardVal, bCardVal);
-        pCardVal= Number(newPCardVal)
-        bCardVal = Number(newBCardVal) // Get the cards values if they are not a number card
         if(req.query.action == "compare"){ // if compare button is clicked, run compare function with the card values, and the total in the pool 
             await compare(pCardVal, bCardVal, total)
         }
+        const deckRes = await axios.get("https://www.deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1")
+        deckId = deckRes.data.deck_id
+        pCard = await axios.get(`https://www.deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`)
+        bCard = await axios.get(`https://www.deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`) // draw a card
+        pCardVal = pCard.data.cards[0].value
+        bCardVal = bCard.data.cards[0].value // Get the cards values
+        const {pCardVal: newPCardVal, bCardVal: newBCardVal} = await strVals(pCardVal, bCardVal);
+        pCardVal = Number(newPCardVal)
+        bCardVal = Number(newBCardVal) // Get the cards values if they are not a number card
     }catch(error){
         res.status(500).send({error: error.message}) 
     }
@@ -117,27 +117,27 @@ app.get("/war", [war], async (req, res) => {
     }
 
     async function compare(pCardVal, bCardVal){ // log to notify that the function is run
-        console.log("compare running")
+        remain = `https://www.deckofcardsapi.com/api/deck/${deckId}/shuffle/?remaining=true`
+        console.log(remain.data.remaining)
         const {pCardVal: newPCardVal, bCardVal: newBCardVal} = await strVals(pCardVal, bCardVal);
         pCardVal = Number(newPCardVal)
         bCardVal = Number(newBCardVal) // get values for string values
-
         if(pCardVal == bCardVal){ 
             total += (pCardVal + bCardVal) // if they are equal, add both cards vals to pool
-            var pCard = await axios.get(`https://www.deckofcardsapi.com/api/deck/${pDeckId}/draw/?count=1`) // get new cards, and call compare function again
-            var bCard = await axios.get(`https://www.deckofcardsapi.com/api/deck/${bDeckId}/draw/?count=1`)
-            var pCardVal = pCard.data.cards[0].value
-            var bCardVal = bCard.data.cards[0].value
-            await compare(pCardVal, bCardVal)
+            pCard = await axios.get(`https://www.deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`) // get new cards, and call compare function again
+            bCard = await axios.get(`https://www.deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`)
+            pCardVal = pCard.data.cards[0].value
+            bCardVal = bCard.data.cards[0].value
         }else if(pCardVal > bCardVal){
             pTotal += (pCardVal + bCardVal + total) // if players card is great than bots card, player card gets the total + both sides card values
             total = 0
+            console.log("Player wins") // notify player
         }else if(pCardVal < bCardVal){
             bTotal += (pCardVal + bCardVal + total) // Same process here
             total = 0
+            console.log("Bot wins") // notify bot
         }
     }
-    console.log(pCardVal, bCardVal) // log the values 
 })
 
 
