@@ -1,22 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
+<DOCTYPE html>
+ <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Card Games!</title>
-    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-    <!-- <div class="phone-container">
-        <div class="phone">
-            <img id="img" src="../assets/iphone.png" alt="iphone">
-            <div class="phone-head">Card Games!</div>
-            <div class="buttons"> -->
-                <button onclick="window.location.href='/blackjack'">blackjack</button>
-                <button onclick="window.location.href='/war'">war</button>
-            <!-- </div>
-        </div> 
-    </div> -->
-    <script src="../middleware/index.js"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+<body class="bg-[#a3b18a] flex items-center justify-center h-screen">
+    <div class="bg-[#3a5a40] rounded-lg shadow-lg p-8 max-w-md w-full text-center">
+        <h1 class="text-[2vw] mb-6 text-[#dad7cd]">Welcome to Card Games!</h1>
+        <div class="space-y-4">
+            <button onclick="window.location.href='/blackjack'" class="w-full py-3 bg-[#dad7cd] text-[#3a5a40] rounded-lg hover:bg-[#588157] transition duration-100">Play Blackjack</button>
+            <button onclick="window.location.href='/war'" class="w-full py-3 bg-[#dad7cd] text-[#3a5a40] rounded-lg hover:bg-[#588157] transition duration-100">Play War</button>
+        </div>
+    </div>
 </body>
 </html>

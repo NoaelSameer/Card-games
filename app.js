@@ -1,6 +1,4 @@
 const express = require('express');
-const blackjack = require('./middleware/blackjack');
-const war = require('./middleware/war');
 const app = express();
 const PORT = 5001
 const axios = require('axios');
@@ -11,7 +9,6 @@ app.set('views', './views');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('views'));
-app.use("/middleware", express.static('middleware'));
 app.use("/assets", express.static('assets'));
 
 app.get("/", (req, res) => {
@@ -23,58 +20,183 @@ app.get("/", (req, res) => {
 
 // BLACKJACK
 
+// used to save each game
+const dater = {
+    playerValue: 0,
+    dealerValue: 0,
+    gameOver: false,
+    message: "",
+    secret: 0,
+    turn: 1,
+    secretCard: "",
+    starter: false
+};
+
+// let dealerCards = ["https://www.deckofcardsapi.com/static/img/back.png"]
+let dealerCards = [],playerCards = [];
+
+app.get("/blackjack", async (req, res) => {
+    //renders the dictionary or object
+    res.render("blackjack", {
+        playerValue: dater.playerValue,
+        dealerValue: dater.dealerValue,
+        gameOver: dater.gameOver,
+        message: dater.message,
+        playerCards: playerCards,
+        dealerCards: dealerCards,
+        turn: dater.turn,
+        starter: false
+    });
+});
+
+// updates the blackjack page
+app.post("/blackjack", async (req, res) => {
+    try {
+        const numberList = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", '10'];
+        //if its a new game itll reset everything, including adding the new 4 cards, itll also do it when the game first starts
+        if (req.body.action === "newGame" || dater.starter == false) {
+            const deckRes = await fetch('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=3');
+            const deckData = await deckRes.json();
+            const cardRes = await fetch(`https://deckofcardsapi.com/api/deck/${deckData.deck_id}/draw/?count=4`);
+            const cardData = await cardRes.json();
+
+            const card1 = (cardData.cards[0].value === "ACE") ? (dater.playerValue < 11 ? 11 : 1) :
+                (numberList.includes(cardData.cards[0].value) ? parseInt(cardData.cards[0].value) : 10);
+
+            const card2 = (cardData.cards[1].value === "ACE") ? (dater.playerValue < 11 ? 11 : 1) :
+                (numberList.includes(cardData.cards[1].value) ? parseInt(cardData.cards[1].value) : 10);
+
+            const card3 = (cardData.cards[2].value === "ACE") ? (dater.dealerValue < 11 ? 11 : 1) :
+                (numberList.includes(cardData.cards[2].value) ? parseInt(cardData.cards[2].value) : 10);
+
+            const card4 = (cardData.cards[3].value === "ACE") ? (dater.dealerValue < 11 ? 11 : 1) :
+                (numberList.includes(cardData.cards[3].value) ? parseInt(cardData.cards[3].value) : 10);
+            // adds the cards to the player and dealer lists, to be showcased 
+            playerCards = [cardData.cards[0].images.png, cardData.cards[1].images.png];
+            dealerCards = ["https://www.deckofcardsapi.com/static/img/back.png", cardData.cards[2].images.png];
+            // saves the secret card to be replaced with the back image later.
+            dater.secretCard = cardData.cards[3].images.png;
+            // starts off the value for each one, and makes the secret value
+            dater.playerValue = card1 + card2;
+            dater.dealerValue = card3;
+            dater.secret = card4; 
+            dater.gameOver = false;
+            dater.message = "";
+            dater.turn = 1;
+
+            console.log("New game made");
+            dater.starter = true;
+        }
+        console.log("secret: " + dater.secret)
+        // if the hit button is pressed itll play this if statement
+        if (req.body.action === "hit") {
+            console.log("Hit");
+            // new card deck and new cards
+            const deckRes = await fetch('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=3');
+            const deckData = await deckRes.json();
+            const cardRes = await fetch(`https://deckofcardsapi.com/api/deck/${deckData.deck_id}/draw/?count=2`);
+            const cardData = await cardRes.json();
+            const carder1 = (cardData.cards[0].value === "ACE") ? (dater.playerValue < 11 ? 11 : 1) :
+                (numberList.includes(cardData.cards[0].value) ? parseInt(cardData.cards[0].value) : 10);
+            const carder2 = (cardData.cards[1].value === "ACE") ? (dater.playerValue < 11? 11 : 1) :
+                (numberList.includes(cardData.cards[1].value) ? parseInt(cardData.cards[1].value) : 10);
+            // adds the value and card to the lists
+            playerCards.push(cardData.cards[0].images.png);
+            dater.playerValue += carder1;
+            console.log(`player hit`, dater.playerValue)
+            // if the playervalue is over 21 they lose
+            if (dater.playerValue > 21) {
+                dater.gameOver = true;
+                dater.message = "Dealer Won!";
+                dealerCards[0] = dater.secretCard;
+
+            }
+
+            // if the dealervalue is less than 17, itll play these if statements
+            if(dater.dealerValue + dater.secret < 17){
+                // adds the carder2 to dealervalue, and adds it to the picture list. 
+                dater.dealerValue += carder2
+                dealerCards.push(cardData.cards[1].images.png)
+                console.log(`dealer hit`, dater.dealerValue)
+                console.log(`secret: ${dater.secret}`)
+            }else{
+                console.log("Dealer did not play" + dater.dealerValue + dater.secret)
+            }
+            // if dealervalue is over 21, itll play this and itll bust. It also remains a secret without the secret card, so the player doesnt immediately know if the dealer busted. 
+            if(dater.dealerValue > 21){
+                dater.gameOver = true;
+                dater.message = "Player Won!";
+                dealerCards[0] = dater.secretCard;
+
+            }
+        }
+        // if the person presses the stand button
+        if (req.body.action === "stand") {
+            console.log("Stand");
+            // it adds the secret value to the dealervalue
+            dater.dealerValue += dater.secret;
+            console.log(`dealer`)
+            // runs this until the dealervalue is over 17
+            while (dater.dealerValue < 17) {
+                const deckRes = await fetch('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1');
+                const deckData = await deckRes.json();
+                const cardRes = await fetch(`https://deckofcardsapi.com/api/deck/${deckData.deck_id}/draw/?count=1`);
+                const cardData = await cardRes.json();
+                const cardValue = (cardData.cards[0].value === "ACE") ? (dater.dealerValue < 11 ? 11 : 1) :
+                    (numberList.includes(cardData.cards[0].value) ? parseInt(cardData.cards[0].value) : 10);
+                
+                dealerCards.push(cardData.cards[0].images.png); 
+                dater.dealerValue += cardValue; 
+                
+                console.log("Dealer draws", cardValue);
+            }
+            // this part determiines the game winners, and replaces the first card (the secret one) with an actual card. 
+            if (dater.dealerValue > 21) {
+                dater.gameOver = true;
+                dater.message = "Dealer Busted! Player Won!";
+                dealerCards[0] = dater.secretCard;
+            } else if (dater.dealerValue < dater.playerValue) {
+                dater.gameOver = true;
+                dater.message = "Player Won!";
+                dealerCards[0] = dater.secretCard;
+            } else if (dater.dealerValue === dater.playerValue) {
+                dater.gameOver = true;
+                dater.message = "It's a tie!";
+                dealerCards[0] = dater.secretCard;
+
+            } else {
+                dater.gameOver = true;
+                dater.message = "Dealer Won!";
+                dealerCards[0] = dater.secretCard;
+            }
+
+            dater.turn = 1; 
+        }
+        // returns everything to the server
+        res.render("blackjack", {
+            gameOver: dater.gameOver,
+            playerValue: dater.playerValue,
+            dealerValue: dater.dealerValue,
+            message: dater.message,
+            playerCards: playerCards,
+            dealerCards: dealerCards,
+            turn: dater.turn,
+            starter: dater.starter,
+        });
+    } catch (error) {
+        // if there are any errors, itll error out. 
+        console.error(error);
+        res.status(404).send("error");
+    }
+});
 
 
-// app.get("/blackjack", [blackjack], async (req, res) => {
-//     const playerValue = 0;
-//     const dealerValue = 0;
-//     const gameOver = false;
-//     const message = "";
-//         res.render("blackjack", {playerValue, dealerValue, gameOver, message});
 
-// });
-// app.post("/blackjack", async (req, res) => {
-//     try {
-//         let playerValue = 0, dealerValue = 0;
-//         let card1, card2
-//         let gameOver = false;
-//         const deckRes = await fetch('https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1');
-//         const deckData = await deckRes.json();
-//         let numberList = ["0","1","2","3","4","5","6","7","8","9",'10'];
-//         const cardRes = await fetch(`https://deckofcardsapi.com/api/deck/${deckData.deck_id}/draw/?count=2`);
-//         const cardData = await cardRes.json();
-    
-//         // FLAWED SYSTEM FIX SOON!!!
-//         if(cardData.cards[0].value == "ACE"){
-//             card1 = (playerValue < 21) ? 11 : 1
-//             // console.log("Ace found")
-//         } else{
-//             card1 = (numberList.includes(cardData.cards[0].value)) ? parseInt(cardData.cards[0].value) : 10
-//         }
-//         if(cardData.cards[1].value == "ACE"){
-//             card2 = (playerValue < 21) ? 11: 1
-//             // console.log("Ace found in deck")
-//         } else{
-//             card2 = (numberList.includes(cardData.cards[1].value))? parseInt(cardData.cards[1].value) : 10
-//         }
-//         console.log("Start")
-//         // playerValue += card1;
-//         dealerValue += card2;
-//         if(req.body.action == "hit"){
-//             console.log("Hit")
-//             playerValue += card1;
-//         }
-//         if(req.body.action == "stand"){
-//             console.log("Stand")
-//         }
-//         console.log(card1, card2);
-//         res.render("blackjack", {gameOver, playerValue, dealerValue});
-//     }
-//     catch (error) {
-//         console.error(error);
-//     }
-//     // console.log(req.body.action);
-// });
+
+
+
+
+
 
 //WAR GAME 
 
