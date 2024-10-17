@@ -7,56 +7,106 @@
     <style>
         body {
             display: flex;
-            height: 100vh;
+            height: 80vh;
             width: auto;
             background-color: darkgreen;
             border: none;
             margin: 0;
+            flex-direction: column;
         }
         h1 {
             color: white;
             text-align: center;
-            position: absolute;
             margin: auto;
             justify-content: center;
             display: flex;
+            padding-top: 1vh;
+            font-size: 3em;
+        }
+        h3{
+            padding-top: 1vh;
+            width: 60%;
+            margin: auto;
+            color: white;
+            font-size: 1.3em;
+            font-weight: 100;
+            text-align: center;
         }
         .container{
-            margin-top: 8vh;
             display: flex;
             justify-content: space-between;
-            width: 100vw;
         }
         .player{
-            height: 100vh;
             width: 48vw;
             text-align: center;
         }
+        .player p, .player:nth-child(1){
+            font-size: 1.6em;
+            margin: 2rem 0;
+        }
         .bot{
-            height: 100vh;
             width: 48vw;
             text-align: center;
+        }
+        .bot p, .bot:nth-child(2){
+            font-size: 1.6em;
+            margin: 2rem 0;
+        }
+        form{
+            justify-content: center;
+            margin: auto;
+        }
+        form button{
+            background-color: white;
+            color: black;
+            padding: 12px;
+            border-radius: 50%;
+            border: none;
+            font-size: .8em;
+            transition: 1s;
+            margin-top: 2rem;
+            cursor: pointer;
+        }
+        form button:hover{
+            padding: 12px;
+            font-size: 1em;
+        }
+        #winner{
+            justify-content: center;
+            text-align: center;
+            margin: auto;
+            font-size: 1.5em;
         }
     </style>
 </head>
 <body>
     <h1>War</h1>
+    <h3>
+        <%= info %>
+    </h3>
     <div class="container">
         <div class="player">
-            <p>Card Value:</p>
-            <%= pCardVal %>
+            <p>Card:</p>
+            <img src="<%= pCard.data.cards[0].image %>" alt="player card">
             <p>Total Score:</p>
             <%= pTotal %>
-            <form action="/war">
-                <button name="action" value="compare" type="submit">Compare</button>
-            </form>
         </div>
         <div class="bot">
-            <p>Card Value:</p>
-            <%= bCardVal %>
+            <p>Card:</p>
+            <img src="<%= bCard.data.cards[0].image %>" alt="player card">
             <p>Total Score:</p>
             <%= bTotal %>
         </div>
     </div>
+    <form action="/war">
+        <button name="action" value="compare" type="submit">Compare</button>
+    </form>
+    <div id="winner">
+        The Winner is: 
+        <p><%= winner %></p>
+    </div>
+    <form action="/reset">
+        <button style="margin-top: 2vh;" class="reset" type="submit">Reset</button>
+    </form>
 </body>
 </html>

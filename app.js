@@ -80,16 +80,28 @@ app.get("/", (req, res) => {
 
 // declare a few variables outside the route
 
-var total = 0, pTotal = 0, bTotal = 0
-var pCardVal = 0, bCardVal = 0, deckId = 0, pCard, bCard, remain
+var total = 0, pTotal = 0, bTotal = 0, i = 0
+var pCardVal = 0, bCardVal = 0, deckId = 0, pCard, bCard, winner
+var cards = 52
+var info = "This is the game of war. Whoever pulls the higher value card, adds both cards to their stack. If both cards are equal, they will be added to a pool and new cards will be compared until one player pulls a higher card, winning the entire pool. The player with the higher total when all cards have run out is the winner"
+
+app.get("/reset", (req, res)=>{
+    total = 0, pTotal = 0, bTotal = 0, i = 0
+    pCardVal = 0, bCardVal = 0, deckId = 0, pCard = null, bCard = null, winner = null
+    cards = 52
+    res.redirect("/war")
+})
 
 app.get("/war", async (req, res) => {
+    if(i == 0){
+        const deckRes = await axios.get("https://www.deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1")
+        deckId = deckRes.data.deck_id
+        i++
+    }
     try{ // try catch to handle errors
         if(req.query.action == "compare"){ // if compare button is clicked, run compare function with the card values, and the total in the pool 
             await compare(pCardVal, bCardVal, total)
         }
-        const deckRes = await axios.get("https://www.deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1")
-        deckId = deckRes.data.deck_id
         pCard = await axios.get(`https://www.deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`)
         bCard = await axios.get(`https://www.deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`) // draw a card
         pCardVal = pCard.data.cards[0].value
@@ -101,11 +113,11 @@ app.get("/war", async (req, res) => {
         res.status(500).send({error: error.message}) 
     }
 
-    res.render("war", {pCardVal, bCardVal, pTotal, bTotal}); // render the site with the current values and totals
+    res.render("war", {pCardVal, bCardVal, pTotal, bTotal, pCard, bCard, winner, info}); // render the site with the current values and totals
 
     async function strVals(pCardVal, bCardVal) { // function to assign values 
-        if(pCardVal === "ACE") {pCardVal = 1}
-        if(bCardVal === "ACE") {bCardVal = 1}
+        if(pCardVal === "ACE") {pCardVal = 11}
+        if(bCardVal === "ACE") {bCardVal = 11}
     
         if(["KING", "QUEEN", "JACK"].includes(pCardVal)){
             pCardVal = 10;
@@ -117,11 +129,10 @@ app.get("/war", async (req, res) => {
     }
 
     async function compare(pCardVal, bCardVal){ // log to notify that the function is run
-        remain = `https://www.deckofcardsapi.com/api/deck/${deckId}/shuffle/?remaining=true`
-        console.log(remain.data.remaining)
         const {pCardVal: newPCardVal, bCardVal: newBCardVal} = await strVals(pCardVal, bCardVal);
         pCardVal = Number(newPCardVal)
         bCardVal = Number(newBCardVal) // get values for string values
+        cards -= 2
         if(pCardVal == bCardVal){ 
             total += (pCardVal + bCardVal) // if they are equal, add both cards vals to pool
             pCard = await axios.get(`https://www.deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`) // get new cards, and call compare function again
@@ -137,6 +148,22 @@ app.get("/war", async (req, res) => {
             total = 0
             console.log("Bot wins") // notify bot
         }
+
+        if(cards< 20){
+            if(pTotal > bTotal){
+                winner = "Player"
+            }else{
+                winner = "Bot"
+            }
+        }
+        if(winner){
+            info = "The End of the line."
+        }
+
+        console.log(pCard.data)
+        console.log(bCard.data)
+        console.log(cards)
+
     }
 })
 
